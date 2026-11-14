@@ -99,3 +99,246 @@
     transparent 100%
   );
 }
+
+/* ========================================================================= */
+/* Light Mode Theme Overrides                                                */
+/* ========================================================================= */
+
+html.light {
+  color-scheme: light;
+}
+
+html.light body {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+/* Scrollbar in Light Mode */
+html.light ::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border: 2px solid #f8fafc;
+}
+
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+html.light * {
+  scrollbar-color: #cbd5e1 #f8fafc;
+}
+
+/* Canvases & Section Backgrounds */
+html.light .bg-zinc-950 {
+  background-color: #f8fafc;
+}
+html.light .bg-zinc-950\/95 {
+  background-color: rgba(248, 250, 252, 0.95);
+}
+html.light .bg-zinc-950\/90 {
+  background-color: rgba(248, 250, 252, 0.9);
+}
+html.light .bg-zinc-950\/85 {
+  background-color: rgba(248, 250, 252, 0.85);
+}
+html.light .bg-zinc-950\/80 {
+  background-color: rgba(248, 250, 252, 0.8);
+}
+html.light .bg-zinc-950\/70 {
+  background-color: rgba(248, 250, 252, 0.7);
+}
+html.light .bg-zinc-950\/60 {
+  background-color: rgba(248, 250, 252, 0.6);
+}
+html.light .bg-zinc-950\/50 {
+  background-color: rgba(248, 250, 252, 0.5);
+}
+html.light .bg-zinc-950\/40 {
+  background-color: rgba(248, 250, 252, 0.4);
+}
+html.light .bg-zinc-950\/30 {
+  background-color: rgba(248, 250, 252, 0.3);
+}
+
+/* Cards & Surface Containers */
+html.light .bg-zinc-900 {
+  background-color: #ffffff;
+}
+html.light .bg-zinc-900\/90 {
+  background-color: rgba(255, 255, 255, 0.95);
+}
+html.light .bg-zinc-900\/80 {
+  background-color: rgba(255, 255, 255, 0.9);
+}
+html.light .bg-zinc-900\/70 {
+  background-color: rgba(255, 255, 255, 0.85);
+}
+html.light .bg-zinc-900\/60 {
+  background-color: rgba(255, 255, 255, 0.8);
+}
+html.light .bg-zinc-900\/40 {
+  background-color: rgba(241, 245, 249, 0.7);
+}
+
+/* Sub-Cards, Chips, Pills & Tags */
+html.light .bg-zinc-800 {
+  background-color: #f1f5f9;
+}
+html.light .bg-zinc-800\/90 {
+  background-color: rgba(241, 245, 249, 0.95);
+}
+html.light .bg-zinc-800\/80 {
+  background-color: rgba(241, 245, 249, 0.9);
+}
+html.light .bg-zinc-800\/70 {
+  background-color: rgba(241, 245, 249, 0.8);
+}
+html.light .bg-zinc-800\/60 {
+  background-color: rgba(241, 245, 249, 0.7);
+}
+
+/* Borders */
+html.light .border-zinc-800,
+html.light .border-zinc-800\/90,
+html.light .border-zinc-800\/80,
+html.light .border-zinc-800\/70,
+html.light .border-zinc-800\/60,
+html.light .border-zinc-800\/40,
+html.light .border-zinc-700,
+html.light .border-zinc-700\/80,
+html.light .border-zinc-700\/70,
+html.light .border-zinc-700\/60,
+html.light .border-zinc-700\/50 {
+  border-color: #e2e8f0;
+}
+
+/* Typography */
+html.light .text-zinc-50,
+html.light .text-zinc-100 {
+  color: #0f172a;
+}
+html.light .text-zinc-200 {
+  color: #1e293b;
+}
+html.light .text-zinc-300 {
+  color: #334155;
+}
+html.light .text-zinc-400 {
+  color: #64748b;
+}
+html.light .text-zinc-500 {
+  color: #94a3b8;
+}
+
+/* Interactive Hovers */
+html.light .hover\:bg-zinc-800:hover,
+html.light .hover\:bg-zinc-800\/90:hover,
+html.light .hover\:bg-zinc-800\/70:hover,
+html.light .hover\:bg-zinc-800\/60:hover,
+html.light .hover\:bg-zinc-800\/50:hover,
+html.light .hover\:bg-zinc-700:hover,
+html.light .hover\:bg-zinc-900:hover,
+html.light .hover\:bg-zinc-900\/90:hover {
+  background-color: #e2e8f0;
+}
+
+html.light .hover\:bg-zinc-950:hover {
+  background-color: #e2e8f0;
+}
+
+html.light .hover\:text-zinc-50:hover,
+html.light .hover\:text-zinc-100:hover,
+html.light .hover\:text-zinc-200:hover {
+  color: #0f172a;
+}
+
+html.light .hover\:border-zinc-600:hover,
+html.light .hover\:border-zinc-700:hover,
+html.light .hover\:border-zinc-700\/80:hover,
+html.light .hover\:border-zinc-800:hover {
+  border-color: #cbd5e1;
+}
+
+/* Emerald & Cyan Badges and Accents */
+html.light .text-emerald-400 {
+  color: #059669;
+}
+html.light .hover\:text-emerald-300:hover,
+html.light .group-hover\:text-emerald-300:hover,
+html.light .hover\:text-emerald-400:hover,
+html.light .group-hover\:text-emerald-400:hover {
+  color: #047857;
+}
+
+html.light .text-cyan-400 {
+  color: #0891b2;
+}
+html.light .hover\:text-cyan-300:hover,
+html.light .group-hover\:text-cyan-300:hover {
+  color: #0e7490;
+}
+
+html.light .bg-emerald-950\/30,
+html.light .bg-emerald-950\/40,
+html.light .bg-emerald-950\/50,
+html.light .bg-emerald-950\/60,
+html.light .bg-emerald-950\/70 {
+  background-color: #ecfdf5;
+}
+
+html.light .bg-cyan-950\/50,
+html.light .bg-cyan-950\/60 {
+  background-color: #ecfeff;
+}
+
+html.light .border-emerald-500\/20,
+html.light .border-emerald-500\/30,
+html.light .border-emerald-500\/40 {
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+html.light .border-cyan-500\/30 {
+  border-color: rgba(6, 182, 212, 0.35);
+}
+
+/* Shadows */
+html.light .shadow-2xl {
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.07), 0 8px 10px -6px rgb(0 0 0 / 0.03);
+}
+html.light .shadow-lg {
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.02);
+}
+html.light .shadow-black\/20 {
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05);
+}
+
+/* Form Inputs & Buttons */
+html.light .disabled\:bg-zinc-800:disabled {
+  background-color: #e2e8f0;
+}
+html.light .disabled\:text-zinc-600:disabled {
+  color: #94a3b8;
+}
+html.light .placeholder-zinc-500::placeholder {
+  color: #94a3b8;
+}
+
+/* Error Messages */
+html.light .bg-rose-950\/60 {
+  background-color: #fff1f2;
+}
+html.light .border-rose-500\/30 {
+  border-color: #fecdd3;
+}
+html.light .text-rose-300,
+html.light .text-rose-400 {
+  color: #be123c;
+}
+
+/* Hero Headline Gradient text contrast in Light Mode */
+html.light h1 span.bg-clip-text {
+  background-image: linear-gradient(to right, #059669, #0d9488, #0891b2);
+}

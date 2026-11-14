@@ -54,10 +54,12 @@ function sanitizeMessages(rawMessages) {
 
 export async function POST(request) {
   try {
-    const apiKey =
+    const rawApiKey =
       process.env.GEMINI_API_KEY ||
       process.env["env GEMINI_API_KEY"] ||
       process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+
+    const apiKey = typeof rawApiKey === "string" ? rawApiKey.trim() : "";
 
     if (!apiKey) {
       return NextResponse.json(
@@ -104,8 +106,9 @@ export async function POST(request) {
       );
     }
 
-    // Google AI Studio gemini-2.5-flash REST endpoint
-    const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    // Google AI Studio gemini-3.8-flash REST endpoint
+    const model = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+    const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
     const geminiPayload = {
       systemInstruction: {
