@@ -77,12 +77,12 @@ Personal Quote:
 `;
 
 export async function POST(request) {
-    const { messages } = await request.json();
-    const gemini = new Gemini({ apiKey });
+	const { messages } = await request.json();
+	const gemini = new gemini({ apiKey });
 
-    messages.unshift({
-        role: "system",
-        content: `You are PortfolioGPT, a friendly, engaging, and knowledgeable AI assistant for Simon Mezampeh's portfolio. Always answer questions based only on the resume provided below.
+	messages.unshift({
+		role: "system",
+		content: `You are PortfolioGPT, a friendly, engaging, and knowledgeable AI assistant for Simon Mezampeh's portfolio. Always answer questions based only on the resume provided below.
 Your goals:
 - Be detailed, helpful, and positive in your answers.
 - Group related information and summarize where appropriate to avoid crowding.
@@ -93,15 +93,15 @@ Your goals:
 
 Resume:
 ${DATA_RESUME}`,
-    });
+	});
 
-    const response = await together.chat.completions.create({
-        model,
-        messages,
-        max_tokens: 256,
-    });
+	const response = await gemini.chat.completions.create({
+		model,
+		messages,
+		max_tokens: 256,
+	});
 
-    return NextResponse.json({
-        message: response.choices[0].message.content,
-    });
+	return NextResponse.json({
+		message: response.choices[0].message.content,
+	});
 }
