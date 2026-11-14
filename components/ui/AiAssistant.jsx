@@ -66,6 +66,10 @@ export default function AiAssistant() {
     setInput("");
     setIsLoading(true);
 
+    // Client-side timeout so the spinner never runs forever
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 35000);
+
     try {
       // Send conversation to Next.js route handler
       const res = await fetch("/api/chat", {
@@ -79,8 +83,10 @@ export default function AiAssistant() {
             content,
           })),
         }),
+        signal: controller.signal,
       });
 
+      clearTimeout(timeout);
       const data = await res.json();
 
       if (!res.ok) {
@@ -96,8 +102,14 @@ export default function AiAssistant() {
 
       setMessages((prev) => [...prev, botMsg]);
     } catch (err) {
+      clearTimeout(timeout);
       console.error("AI Assistant chat error:", err);
-      setErrorMessage(err.message || "Something went wrong. Please check your network and try again.");
+      const isTimeout = err.name === "AbortError";
+      setErrorMessage(
+        isTimeout
+          ? "The request timed out. The AI model may be experiencing high demand. Please try again."
+          : err.message || "Something went wrong. Please check your network and try again."
+      );
     } finally {
       setIsLoading(false);
       if (inputRef.current) {

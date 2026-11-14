@@ -4,6 +4,18 @@ import { generateSystemPrompt } from "@/data/portfolio";
 export const dynamic = "force-dynamic";
 
 /**
+ * Ordered list of Gemini models to try.
+ * The route will attempt each in sequence until one succeeds.
+ */
+const MODEL_CANDIDATES = [
+  "gemini-3.8-flash",
+  "gemini-flash-lite-latest",
+];
+
+/** Per-model request timeout in milliseconds. */
+const REQUEST_TIMEOUT_MS = 15_000;
+
+/**
  * Sanitizes and normalizes incoming client messages into the structure
  * expected by Google AI Studio's Gemini generateContent API.
  */
@@ -50,6 +62,35 @@ function sanitizeMessages(rawMessages) {
   }
 
   return contents;
+}
+
+/**
+ * Attempt a single Gemini generateContent call with a timeout.
+ * Returns { ok, data, status } or throws on network / timeout failure.
+ */
+async function callGemini(model, apiKey, payload) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timer);
+
+    const data = await response.json();
+    return { ok: response.ok, status: response.status, data };
+  } catch (err) {
+    clearTimeout(timer);
+    // Re-throw so the caller can distinguish network / abort errors
+    throw err;
+  }
 }
 
 export async function POST(request) {
@@ -106,10 +147,6 @@ export async function POST(request) {
       );
     }
 
-    // Google AI Studio gemini-3.8-flash REST endpoint
-    const model = process.env.GEMINI_MODEL || "gemini-3.8-flash";
-    const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-
     const geminiPayload = {
       systemInstruction: {
         parts: [
@@ -126,84 +163,86 @@ export async function POST(request) {
       },
     };
 
-    const response = await fetch(GEMINI_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(geminiPayload),
-    });
+    // ------------------------------------------------------------------
+    // Try each model in order until one succeeds
+    // ------------------------------------------------------------------
+    const models =
+      process.env.GEMINI_MODEL
+        ? [process.env.GEMINI_MODEL, ...MODEL_CANDIDATES]
+        : MODEL_CANDIDATES;
 
-    if (!response.ok) {
-      const status = response.status;
-      let errorData = null;
+    let lastError = null;
+    let lastStatus = 500;
+
+    for (const model of models) {
       try {
-        errorData = await response.json();
-      } catch {
-        // Response body was not JSON
-      }
+        const result = await callGemini(model, apiKey, geminiPayload);
 
-      if (status === 429) {
-        return NextResponse.json(
-          {
-            error: "Gemini AI rate limit reached. Please wait a moment and try again.",
-            code: "RATE_LIMIT_EXCEEDED",
-          },
-          { status: 429 }
-        );
-      }
+        if (result.ok) {
+          // --- Success path ---
+          const candidate = result.data?.candidates?.[0];
+          let replyText = "";
+          if (candidate?.content?.parts && Array.isArray(candidate.content.parts)) {
+            replyText = candidate.content.parts
+              .map((p) => p?.text || "")
+              .join("")
+              .trim();
+          }
 
-      if (status === 401 || status === 403) {
-        return NextResponse.json(
-          {
-            error: "Invalid or unauthorized Gemini API key.",
-            code: "UNAUTHORIZED",
-          },
-          { status: 403 }
-        );
-      }
+          if (!replyText) {
+            if (candidate?.finishReason === "SAFETY") {
+              replyText =
+                "I apologize, but I cannot answer that particular inquiry due to content safety guidelines. Feel free to ask about Simon's skills, projects, or background!";
+            } else {
+              replyText =
+                "Hello! I am Simon's AI assistant. Feel free to ask any questions regarding Simon's software engineering background, projects, or technical skills.";
+            }
+          }
 
-      if (status === 400) {
-        return NextResponse.json(
-          {
-            error: errorData?.error?.message || "Invalid request to Gemini API.",
-            code: "BAD_REQUEST",
-          },
-          { status: 400 }
-        );
-      }
+          return NextResponse.json({ message: replyText });
+        }
 
-      return NextResponse.json(
-        {
-          error: errorData?.error?.message || "Failed to communicate with Gemini API.",
-          code: "AI_SERVICE_ERROR",
-        },
-        { status: status >= 500 ? 502 : status }
-      );
-    }
+        // Non-OK but got a response — decide whether to retry the next model
+        const status = result.status;
+        const errMsg = result.data?.error?.message || "";
 
-    const data = await response.json();
-    const candidate = data?.candidates?.[0];
+        // 401/403 is an API key issue, don't retry with another model
+        if (status === 401 || status === 403) {
+          return NextResponse.json(
+            {
+              error: "Invalid or unauthorized Gemini API key.",
+              code: "UNAUTHORIZED",
+            },
+            { status: 403 }
+          );
+        }
 
-    let replyText = "";
-    if (candidate?.content?.parts && Array.isArray(candidate.content.parts)) {
-      replyText = candidate.content.parts
-        .map((p) => p?.text || "")
-        .join("")
-        .trim();
-    }
-
-    if (!replyText) {
-      if (candidate?.finishReason === "SAFETY") {
-        replyText =
-          "I apologize, but I cannot answer that particular inquiry due to content safety guidelines. Feel free to ask about Simon's skills, projects, or background!";
-      } else {
-        replyText =
-          "Hello! I am Simon's AI assistant. Feel free to ask any questions regarding Simon's software engineering background, projects, or technical skills.";
+        // 429 / 503 / 404 — try next model
+        lastError = errMsg || "Gemini API returned HTTP " + status;
+        lastStatus = status;
+        console.warn(`[chat] Model ${model} returned ${status}: ${errMsg.slice(0, 120)}. Trying next model.`);
+        continue;
+      } catch (err) {
+        // Timeout or network failure — try next model
+        const isTimeout = err.name === "AbortError";
+        lastError = isTimeout
+          ? `Model ${model} timed out after ${REQUEST_TIMEOUT_MS / 1000}s.`
+          : err.message || "Network error";
+        lastStatus = 504;
+        console.warn(`[chat] Model ${model} failed: ${lastError}. Trying next model.`);
+        continue;
       }
     }
 
-    return NextResponse.json({ message: replyText });
+    // All models exhausted
+    return NextResponse.json(
+      {
+        error:
+          "This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.",
+        code: "AI_SERVICE_ERROR",
+      },
+      { status: lastStatus >= 500 ? 502 : lastStatus }
+    );
   } catch (error) {
     console.error("Unhandled error in /api/chat route:", error);
     return NextResponse.json(
