@@ -1,8 +1,7 @@
-import Together from "together-ai";
 import { NextResponse } from "next/server";
 
-const apiKey = process.env.TOGETHER_API_KEY;
-const model = process.env.TOGETHER_MODEL;
+const apiKey = process.env.GEMINI_API_KEY;
+const model = process.env.GEMINI_MODEL;
 
 const DATA_RESUME = `Simon Mezampeh
 Address: Sekondi Takoradi
@@ -14,7 +13,7 @@ Education:
 
 Top Achievements & Projects:
 - Built an airport website using HTML, CSS, and JavaScript.
-- Developed this personal portfolio website using Next.js, React.js, and integrated a chatbot powered by Together AI.
+- Developed this personal portfolio website using Next.js, React.js, and integrated a chatbot powered by Gemini AI.
 - Achieved 5th place in a competitive hackathon.
 - User Authentication System with SQL and phpMyAdmin
 - Personal Website with HTML/CSS
@@ -23,7 +22,7 @@ Technical Proficiencies:
 - Frontend: HTML, CSS, JavaScript, TypeScript, React, Next.js, Vite
 - Backend: SQL, Python, C++
 - Frameworks & Libraries: Next.js, React.js, Vite
-- Tools: VS Code, Git, GitHub, Azure, Together AI
+- Tools: VS Code, Git, GitHub, Azure, Gemini AI
 
 Career Goals:
 - Excel in my studies and achieve top results at university.
@@ -78,12 +77,12 @@ Personal Quote:
 `;
 
 export async function POST(request) {
-    const { messages } = await request.json();
-    const together = new Together({ apiKey });
+	const { messages } = await request.json();
+	const gemini = new gemini({ apiKey });
 
-    messages.unshift({
-        role: "system",
-        content: `You are PortfolioGPT, a friendly, engaging, and knowledgeable AI assistant for Simon Mezampeh's portfolio. Always answer questions based only on the resume provided below.
+	messages.unshift({
+		role: "system",
+		content: `You are PortfolioGPT, a friendly, engaging, and knowledgeable AI assistant for Simon Mezampeh's portfolio. Always answer questions based only on the resume provided below.
 Your goals:
 - Be detailed, helpful, and positive in your answers.
 - Group related information and summarize where appropriate to avoid crowding.
@@ -94,15 +93,15 @@ Your goals:
 
 Resume:
 ${DATA_RESUME}`,
-    });
+	});
 
-    const response = await together.chat.completions.create({
-        model,
-        messages,
-        max_tokens: 256,
-    });
+	const response = await gemini.chat.completions.create({
+		model,
+		messages,
+		max_tokens: 256,
+	});
 
-    return NextResponse.json({
-        message: response.choices[0].message.content,
-    });
+	return NextResponse.json({
+		message: response.choices[0].message.content,
+	});
 }
