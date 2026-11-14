@@ -1,8 +1,7 @@
-import Together from "together-ai";
 import { NextResponse } from "next/server";
 
-const apiKey = process.env.TOGETHER_API_KEY;
-const model = process.env.TOGETHER_MODEL;
+const apiKey = process.env.GEMINI_API_KEY;
+const model = process.env.GEMINI_MODEL;
 
 const DATA_RESUME = `Simon Mezampeh
 Address: Sekondi Takoradi
@@ -14,7 +13,7 @@ Education:
 
 Top Achievements & Projects:
 - Built an airport website using HTML, CSS, and JavaScript.
-- Developed this personal portfolio website using Next.js, React.js, and integrated a chatbot powered by Together AI.
+- Developed this personal portfolio website using Next.js, React.js, and integrated a chatbot powered by Gemini AI.
 - Achieved 5th place in a competitive hackathon.
 - User Authentication System with SQL and phpMyAdmin
 - Personal Website with HTML/CSS
@@ -23,7 +22,7 @@ Technical Proficiencies:
 - Frontend: HTML, CSS, JavaScript, TypeScript, React, Next.js, Vite
 - Backend: SQL, Python, C++
 - Frameworks & Libraries: Next.js, React.js, Vite
-- Tools: VS Code, Git, GitHub, Azure, Together AI
+- Tools: VS Code, Git, GitHub, Azure, Gemini AI
 
 Career Goals:
 - Excel in my studies and achieve top results at university.
@@ -79,7 +78,7 @@ Personal Quote:
 
 export async function POST(request) {
     const { messages } = await request.json();
-    const together = new Together({ apiKey });
+    const gemini = new Gemini({ apiKey });
 
     messages.unshift({
         role: "system",
