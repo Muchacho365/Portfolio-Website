@@ -7,12 +7,12 @@ import {
   ExternalLink,
   Monitor,
   Smartphone,
-  Github,
   Layers,
   Sparkles,
   AlertCircle,
   Code2,
 } from "lucide-react";
+import { Github } from "@/components/ui/BrandIcons";
 
 export default function ProjectPreviewModal({ project, isOpen, onClose }) {
   const [viewportMode, setViewportMode] = useState("desktop");

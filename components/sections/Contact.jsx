@@ -5,14 +5,13 @@ import {
   Mail,
   Copy,
   Check,
-  Github,
-  Linkedin,
   FileText,
   MapPin,
   Clock,
   ArrowUpRight,
   Send,
 } from "lucide-react";
+import { Github, Linkedin } from "@/components/ui/BrandIcons";
 import { profile } from "@/data/portfolio";
 
 export default function Contact() {

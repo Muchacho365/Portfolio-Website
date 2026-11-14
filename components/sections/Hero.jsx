@@ -3,13 +3,12 @@ import {
   Sparkles,
   FileText,
   ArrowRight,
-  Github,
-  Linkedin,
   Mail,
   Award,
   Terminal,
   MapPin,
 } from "lucide-react";
+import { Github, Linkedin } from "@/components/ui/BrandIcons";
 import { profile } from "@/data/portfolio";
 
 export default function Hero() {

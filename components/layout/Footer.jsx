@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Github, Linkedin, Mail, FileText, Terminal, ArrowUpRight, Sparkles } from "lucide-react";
+import { Mail, FileText, Terminal, ArrowUpRight, Sparkles } from "lucide-react";
+import { Github, Linkedin } from "@/components/ui/BrandIcons";
 import { profile } from "@/data/portfolio";
 
 export default function Footer() {

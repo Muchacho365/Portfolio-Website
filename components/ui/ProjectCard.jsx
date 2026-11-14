@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { Github, ExternalLink, Sparkles, Layers, Terminal } from "lucide-react";
+import { ExternalLink, Sparkles, Layers, Terminal } from "lucide-react";
+import { Github } from "@/components/ui/BrandIcons";
 
 export default function ProjectCard({ project, onPreview, isLarge = false }) {
   return (
