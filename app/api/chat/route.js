@@ -1,107 +1,214 @@
 import { NextResponse } from "next/server";
+import { generateSystemPrompt } from "@/data/portfolio";
 
-const apiKey = process.env.GEMINI_API_KEY;
-const model = process.env.GEMINI_MODEL;
+export const dynamic = "force-dynamic";
 
-const DATA_RESUME = `Simon Mezampeh
-Address: Sekondi Takoradi
-Phone: +233 55 061 4909
-Email: mezampehsimon@gmail.com
+/**
+ * Sanitizes and normalizes incoming client messages into the structure
+ * expected by Google AI Studio's Gemini generateContent API.
+ */
+function sanitizeMessages(rawMessages) {
+  if (!Array.isArray(rawMessages) || rawMessages.length === 0) {
+    return [];
+  }
 
-Education:
-- Software Engineering Student, Takoradi Technical University
+  const contents = [];
 
-Top Achievements & Projects:
-- Built an airport website using HTML, CSS, and JavaScript.
-- Developed this personal portfolio website using Next.js, React.js, and integrated a chatbot powered by Gemini AI.
-- Achieved 5th place in a competitive hackathon.
-- User Authentication System with SQL and phpMyAdmin
-- Personal Website with HTML/CSS
+  for (const item of rawMessages) {
+    if (!item || typeof item !== "object") continue;
 
-Technical Proficiencies:
-- Frontend: HTML, CSS, JavaScript, TypeScript, React, Next.js, Vite
-- Backend: SQL, Python, C++
-- Frameworks & Libraries: Next.js, React.js, Vite
-- Tools: VS Code, Git, GitHub, Azure, Gemini AI
+    // Reject client-provided system role to prevent prompt injection overriding system instruction
+    if (item.role === "system") continue;
 
-Career Goals:
-- Excel in my studies and achieve top results at university.
-- Join a forward-thinking tech company where I can grow and contribute.
-- Secure a rewarding job in the tech industry.
+    // Gemini contents use "user" and "model" roles
+    const role = item.role === "assistant" || item.role === "model" ? "model" : "user";
 
-Experience:
-- Intern, Computer Hardware Company: OS Installation and PC Repairs
+    // Extract text from string content or parts
+    let text = "";
+    if (typeof item.content === "string") {
+      text = item.content;
+    } else if (typeof item.text === "string") {
+      text = item.text;
+    } else if (Array.isArray(item.parts)) {
+      text = item.parts
+        .map((p) => (typeof p === "string" ? p : p?.text || ""))
+        .join(" ");
+    }
 
-Challenges Overcome:
-- Overcame financial barriers to paid courses by leveraging free resources like YouTube and self-study.
+    text = text.trim();
+    if (!text) continue;
 
-Favorite Programming Languages:
-- Previously favored Python for its popularity, but now prefer JavaScript for its versatility, rich ecosystem, and ability to work on both frontend and backend (thanks to React and Node.js).
+    // Bound maximum message length to avoid payload abuse
+    if (text.length > 4000) {
+      text = text.slice(0, 4000);
+    }
 
-Teamwork & Collaboration:
-- Value friendliness, adaptability, and consistency. I believe adapting to different personalities and working styles increases team productivity.
+    contents.push({
+      role,
+      parts: [{ text }],
+    });
+  }
 
-Hobbies & Interests:
-- Enjoy gaming, football, K-dramas, and anime.
-
-Proudest Moment:
-- Unlocking my ability to understand how programs work as a student; looking forward to more developer milestones.
-
-Preferred Company Culture:
-- Thrive in environments with a sense of hospitality and support.
-
-Learning Philosophy:
-- Used to only watch tutorials, but now I practice everything I learn—hands-on experience is key.
-
-Certifications & Awards:
-- Hackathon certificate (5th place).
-
-Open Source & Community:
-- No major contributions yet, but I aspire to participate in programs like GSoC in the future.
-
-Development Workflow & Tools:
-- VS Code, Git, GitHub, and looking to add Visual Studio to my toolkit.
-
-Learning Platforms:
-- Udemy, edX, YouTube
-- Educators: Mosh Hamedani, Andrei Neagoie, David Malan
-
-Fun Fact:
-- My favorite footballer is Cristiano Ronaldo.
-
-Soft Skills:
-- Friendly, leadership, adaptability.
-
-Personal Quote:
-- "Hard work beats talent when talent doesn’t work hard." - Cristiano Ronaldo
-`;
+  return contents;
+}
 
 export async function POST(request) {
-	const { messages } = await request.json();
-	const gemini = new gemini({ apiKey });
+  try {
+    const apiKey =
+      process.env.GEMINI_API_KEY ||
+      process.env["env GEMINI_API_KEY"] ||
+      process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
-	messages.unshift({
-		role: "system",
-		content: `You are PortfolioGPT, a friendly, engaging, and knowledgeable AI assistant for Simon Mezampeh's portfolio. Always answer questions based only on the resume provided below.
-Your goals:
-- Be detailed, helpful, and positive in your answers.
-- Group related information and summarize where appropriate to avoid crowding.
-- Use clear structure: bullet points, headings, and line breaks for readability. Add extra whitespace between sections if it helps.
-- You have some flexibility to elaborate, rephrase, or organize the information in a way that is most helpful and attractive for the user, as long as you only use the details from the resume below (do not use global knowledge).
-- Add a touch of personality and encouragement (emojis are welcome if they fit the context 🎉).
-- If you don't know the answer, politely say so and encourage the user to ask something else.
+    if (!apiKey) {
+      return NextResponse.json(
+        {
+          error: "Google Gemini API key is not configured.",
+          code: "MISSING_API_KEY",
+        },
+        { status: 500 }
+      );
+    }
 
-Resume:
-${DATA_RESUME}`,
-	});
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        {
+          error: "Invalid JSON in request body.",
+          code: "INVALID_JSON",
+        },
+        { status: 400 }
+      );
+    }
 
-	const response = await gemini.chat.completions.create({
-		model,
-		messages,
-		max_tokens: 256,
-	});
+    // Accept either { messages: [...] } or a single { message: "..." } / { prompt: "..." }
+    let rawMessages = [];
+    if (Array.isArray(body?.messages)) {
+      rawMessages = body.messages;
+    } else if (typeof body?.message === "string" && body.message.trim()) {
+      rawMessages = [{ role: "user", content: body.message.trim() }];
+    } else if (typeof body?.prompt === "string" && body.prompt.trim()) {
+      rawMessages = [{ role: "user", content: body.prompt.trim() }];
+    }
 
-	return NextResponse.json({
-		message: response.choices[0].message.content,
-	});
+    const sanitizedContents = sanitizeMessages(rawMessages);
+
+    if (sanitizedContents.length === 0) {
+      return NextResponse.json(
+        {
+          error: "Valid message content is required.",
+          code: "EMPTY_MESSAGES",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Google AI Studio gemini-2.5-flash REST endpoint
+    const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+    const geminiPayload = {
+      systemInstruction: {
+        parts: [
+          {
+            text: generateSystemPrompt(),
+          },
+        ],
+      },
+      contents: sanitizedContents,
+      generationConfig: {
+        temperature: 0.7,
+        topP: 0.95,
+        maxOutputTokens: 1024,
+      },
+    };
+
+    const response = await fetch(GEMINI_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(geminiPayload),
+    });
+
+    if (!response.ok) {
+      const status = response.status;
+      let errorData = null;
+      try {
+        errorData = await response.json();
+      } catch {
+        // Response body was not JSON
+      }
+
+      if (status === 429) {
+        return NextResponse.json(
+          {
+            error: "Gemini AI rate limit reached. Please wait a moment and try again.",
+            code: "RATE_LIMIT_EXCEEDED",
+          },
+          { status: 429 }
+        );
+      }
+
+      if (status === 401 || status === 403) {
+        return NextResponse.json(
+          {
+            error: "Invalid or unauthorized Gemini API key.",
+            code: "UNAUTHORIZED",
+          },
+          { status: 403 }
+        );
+      }
+
+      if (status === 400) {
+        return NextResponse.json(
+          {
+            error: errorData?.error?.message || "Invalid request to Gemini API.",
+            code: "BAD_REQUEST",
+          },
+          { status: 400 }
+        );
+      }
+
+      return NextResponse.json(
+        {
+          error: errorData?.error?.message || "Failed to communicate with Gemini API.",
+          code: "AI_SERVICE_ERROR",
+        },
+        { status: status >= 500 ? 502 : status }
+      );
+    }
+
+    const data = await response.json();
+    const candidate = data?.candidates?.[0];
+
+    let replyText = "";
+    if (candidate?.content?.parts && Array.isArray(candidate.content.parts)) {
+      replyText = candidate.content.parts
+        .map((p) => p?.text || "")
+        .join("")
+        .trim();
+    }
+
+    if (!replyText) {
+      if (candidate?.finishReason === "SAFETY") {
+        replyText =
+          "I apologize, but I cannot answer that particular inquiry due to content safety guidelines. Feel free to ask about Simon's skills, projects, or background!";
+      } else {
+        replyText =
+          "Hello! I am Simon's AI assistant. Feel free to ask any questions regarding Simon's software engineering background, projects, or technical skills.";
+      }
+    }
+
+    return NextResponse.json({ message: replyText });
+  } catch (error) {
+    console.error("Unhandled error in /api/chat route:", error);
+    return NextResponse.json(
+      {
+        error: "An unexpected internal server error occurred.",
+        code: "INTERNAL_SERVER_ERROR",
+      },
+      { status: 500 }
+    );
+  }
 }
