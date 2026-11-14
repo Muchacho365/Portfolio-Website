@@ -2,12 +2,20 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Menu, X, FileText, Sparkles, Terminal } from "lucide-react";
+import { Menu, X, FileText, Sparkles, Terminal, Sun, Moon } from "lucide-react";
 import { profile } from "@/data/portfolio";
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [theme, setTheme] = useState("dark");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const isLight = document.documentElement.classList.contains("light");
+    setTheme(isLight ? "light" : "dark");
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -17,6 +25,24 @@ export default function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
+    try {
+      localStorage.setItem("theme", nextTheme);
+    } catch {
+      // Ignore storage errors in restricted contexts
+    }
+
+    if (nextTheme === "light") {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.add("light");
+    } else {
+      document.documentElement.classList.remove("light");
+      document.documentElement.classList.add("dark");
+    }
+  };
 
   const navLinks = [
     { name: "About", href: "#about" },
@@ -77,6 +103,21 @@ export default function Navbar() {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-3">
+            {/* Theme Toggle Button */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="p-2 sm:p-2.5 rounded-xl text-zinc-400 hover:text-zinc-100 bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-700/70 hover:border-emerald-500/40 transition-all duration-200 active:scale-95 flex items-center justify-center cursor-pointer"
+              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {mounted && theme === "light" ? (
+                <Moon className="w-4 h-4 text-emerald-600 transition-transform duration-200" />
+              ) : (
+                <Sun className="w-4 h-4 text-amber-400 transition-transform duration-200" />
+              )}
+            </button>
+
             <a
               href={profile.resumeUrl}
               target="_blank"
@@ -90,6 +131,21 @@ export default function Navbar() {
 
           {/* Mobile Hamburger Button */}
           <div className="flex md:hidden items-center gap-2">
+            {/* Mobile Theme Toggle Button */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="p-2 rounded-lg text-zinc-400 hover:text-zinc-100 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-colors cursor-pointer"
+              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {mounted && theme === "light" ? (
+                <Moon className="w-4 h-4 text-emerald-600" />
+              ) : (
+                <Sun className="w-4 h-4 text-amber-400" />
+              )}
+            </button>
+
             <a
               href={profile.resumeUrl}
               target="_blank"
@@ -137,7 +193,25 @@ export default function Navbar() {
               </a>
             ))}
 
-            <div className="pt-3 border-t border-zinc-800/60">
+            <div className="pt-3 border-t border-zinc-800/60 space-y-2">
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-zinc-300 bg-zinc-900 border border-zinc-800/80 hover:border-zinc-700"
+              >
+                <span className="flex items-center gap-2">
+                  {mounted && theme === "light" ? (
+                    <Moon className="w-4 h-4 text-emerald-600" />
+                  ) : (
+                    <Sun className="w-4 h-4 text-amber-400" />
+                  )}
+                  <span>Appearance</span>
+                </span>
+                <span className="text-xs font-mono text-zinc-400">
+                  {mounted && theme === "light" ? "Light" : "Dark"}
+                </span>
+              </button>
+
               <a
                 href={profile.resumeUrl}
                 target="_blank"

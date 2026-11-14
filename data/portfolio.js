@@ -28,8 +28,8 @@ export const profile = {
 	avatar: "/images/avatar2.png",
 	resumeUrl: "/Simon-Mezampeh-Resume.pdf",
 	socialLinks: {
-		github: "https://github.com/SimonsDevHub",
-		linkedin: "https://linkedin.com",
+		github: "https://github.com/Muchacho365",
+		linkedin: "https://www.linkedin.com/in/simon-mezampeh",
 		email: "mailto:mezampehsimon@gmail.com",
 	},
 	learningPhilosophy:

@@ -69,7 +69,15 @@ export default function RootLayout({ children }) {
     <html
       lang="en"
       className={`dark scroll-smooth ${inter.variable} ${jetbrainsMono.variable}`}
+      suppressHydrationWarning
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var s=localStorage.getItem('theme');if(s==='light'){document.documentElement.classList.remove('dark');document.documentElement.classList.add('light');}else{document.documentElement.classList.remove('light');document.documentElement.classList.add('dark');}}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className="bg-zinc-950 text-zinc-50 font-sans antialiased selection:bg-emerald-500/20 selection:text-emerald-300 min-h-screen flex flex-col">
         {children}
       </body>

@@ -32,7 +32,7 @@ export default function AiAssistant() {
       id: "welcome",
       role: "assistant",
       content:
-        "Hello! I am PortfolioGPT, Simon Mezampeh's personal AI assistant powered by Google Gemini 2.5 Flash. I have full knowledge of Simon's technical skills, education at Takoradi Technical University, projects, and work experience. How can I help you today?",
+        "Hello! I am PortfolioGPT, Simon Mezampeh's personal AI assistant powered by Google Gemini 3.8 Flash. I have full knowledge of Simon's technical skills, education at Takoradi Technical University, projects, and work experience. How can I help you today?",
       time: "Just now",
     },
   ]);
@@ -66,6 +66,10 @@ export default function AiAssistant() {
     setInput("");
     setIsLoading(true);
 
+    // Client-side timeout so the spinner never runs forever
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 35000);
+
     try {
       // Send conversation to Next.js route handler
       const res = await fetch("/api/chat", {
@@ -79,8 +83,10 @@ export default function AiAssistant() {
             content,
           })),
         }),
+        signal: controller.signal,
       });
 
+      clearTimeout(timeout);
       const data = await res.json();
 
       if (!res.ok) {
@@ -96,8 +102,14 @@ export default function AiAssistant() {
 
       setMessages((prev) => [...prev, botMsg]);
     } catch (err) {
+      clearTimeout(timeout);
       console.error("AI Assistant chat error:", err);
-      setErrorMessage(err.message || "Something went wrong. Please check your network and try again.");
+      const isTimeout = err.name === "AbortError";
+      setErrorMessage(
+        isTimeout
+          ? "The request timed out. The AI model may be experiencing high demand. Please try again."
+          : err.message || "Something went wrong. Please check your network and try again."
+      );
     } finally {
       setIsLoading(false);
       if (inputRef.current) {
@@ -168,7 +180,7 @@ export default function AiAssistant() {
                   </span>
                 </div>
                 <span className="text-[11px] font-mono text-zinc-400 block">
-                  gemini-2.5-flash • Native Serverless API
+                  gemini-3.8-flash • Native Serverless API
                 </span>
               </div>
             </div>

@@ -9,7 +9,7 @@ Production-grade personal portfolio for **Simon Mezampeh** (`SimonsDevHub`), a S
 * **Styling:** Tailwind CSS `4.3.5` (`@tailwindcss/postcss`)
 * **Icons:** `lucide-react` `^1.73.0`
 * **Package Manager:** `pnpm` (`12.19.0`)
-* **AI Backend:** Serverless Next.js Route Handler (`app/api/chat/route.js`) calling Google AI Studio (`gemini-2.5-flash`) via native `fetch()` using `process.env.GEMINI_API_KEY`.
+* **AI Backend:** Serverless Next.js Route Handler (`app/api/chat/route.js`) calling Google AI Studio (`gemini-3.8-flash`) via native `fetch()` using `process.env.GEMINI_API_KEY`.
 
 ## 3. Coding & Architecture Rules
 * **Dark-Mode-First Design:** Use `bg-zinc-950` canvas, `bg-zinc-900/60` glassmorphic cards with `border-zinc-800/80`, and `emerald-400` / `cyan-400` accents.
